@@ -33,20 +33,21 @@ bind_layers(SourceRoute, IP, bos=1)
 
 def main():
 
-    if len(sys.argv)<3:
-        print 'pass 3 arguments: <destination> <bool_src_route>'
+    if len(sys.argv)<4:
+        print 'pass 4 arguments: <source> <destination> <bool_src_route>'
         exit(1)
 
-    addr = socket.gethostbyname(sys.argv[1])
+    source=sys.argv[1]
+    addr = socket.gethostbyname(sys.argv[2])
     iface = get_if()
     print "sending on interface %s to %s" % (iface, str(addr))
     i = 0
     pkt =  Ether(src=get_if_hwaddr(iface), dst='ff:ff:ff:ff:ff:ff');
-    if sys.argv[2] == '1':
+    if sys.argv[3] == '1':
         for p in range(3):
             pkt = pkt / SourceRoute(bos=0, port=int(1))
     pkt.getlayer(SourceRoute, 3).bos = 1
-    pkt = pkt / IP(dst=addr) / UDP(dport=4321, sport=1234)
+    pkt = pkt / IP(src=source,dst=addr) / UDP(dport=4321, sport=1234)
     pkt.show2()
     sendp(pkt, iface=iface, verbose=False)
 
