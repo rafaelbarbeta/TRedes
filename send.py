@@ -42,7 +42,7 @@ def main():
     print "sending on interface %s to %s" % (iface, str(addr))
     i = 0
     pkt =  Ether(src=get_if_hwaddr(iface), dst='ff:ff:ff:ff:ff:ff');
-    if sys.argv[2] == 1:
+    if sys.argv[2] == '1':
         for p in range(3):
             pkt = pkt / SourceRoute(bos=0, port=int(4))
     pkt.getlayer(SourceRoute, 3).bos = 1
