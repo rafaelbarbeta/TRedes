@@ -4,6 +4,9 @@
 
 const bit<16> TYPE_IPV4 = 0x800;
 const bit<16> TYPE_SRCROUTING = 0x1234;
+const bit<32> HOST_H1 = 0x0a00000a;
+const bit<32> HOST_H2 = 0x0a00010a;
+const bit<32> HOST_H3 = 0x0a00020a;
 
 #define MAX_HOPS 9
 
@@ -122,11 +125,51 @@ control MyIngress(inout headers hdr,
     action update_ttl(){
         hdr.ipv4.ttl = hdr.ipv4.ttl - 1;
     }
+
+    action choose_ports_srcRoute_h1_to_h3(){
+        hdr.srcRoutes[0].port = 2;
+        hdr.srcRoutes[1].port = 3;
+        hdr.srcRoutes[2].port = 2;
+    }
+
+    action choose_ports_srcRoute_h3_to_h1(){
+        hdr.srcRoutes[0].port = 1;
+        hdr.srcRoutes[1].port = 1;
+        hdr.srcRoutes[2].port = 1;
+    }
+
+    action choose_ports_srcRoute_h2_to_h1(){
+        hdr.srcRoutes[0].port = 3;
+        hdr.srcRoutes[1].port = 3;
+        hdr.srcRoutes[2].port = 1;
+    }
+
+    action choose_ports_srcRoute_h2_to_h3(){
+        hdr.srcRoutes[0].port = 1;
+        hdr.srcRoutes[1].port = 3;
+        hdr.srcRoutes[2].port = 2;
+    }
     
     apply {
         if (hdr.srcRoutes[0].isValid()){
+            if (hdr.srcRoutes[0].port == 4) {
+                if (hdr.ipv4.srcAddr == HOST_H1 && hdr.ipv4.dstAddr == HOST_H3) {
+                    choose_ports_srcRoute_h1_to_h3();
+                }
+                else if (hdr.ipv4.srcAddr == HOST_H3 && hdr.ipv4.dstAddr == HOST_H1) {
+                    choose_ports_srcRoute_h3_to_h1();
+                }
+                else if (hdr.ipv4.srcAddr == HOST_H2 && hdr.ipv4.dstAddr == HOST_H1) {
+                    choose_ports_srcRoute_h2_to_h1();
+                }
+                else if (hdr.ipv4.srcAddr == HOST_H2 && hdr.ipv4.dstAddr == HOST_H3) {
+                    choose_ports_srcRoute_h2_to_h3();
+                }
+                //else if (hdr.ipv4.dstAddr == HOST_H2) {
+                //}
+            }
             if (hdr.srcRoutes[0].bos == 1) {
-               srcRoute_finish();
+                srcRoute_finish();
             }
             srcRoute_nhop();
             if (hdr.ipv4.isValid()){
