@@ -45,7 +45,7 @@ def main():
     pkt =  Ether(src=get_if_hwaddr(iface), dst='ff:ff:ff:ff:ff:ff');
     if sys.argv[3] == '1':
         for p in range(3):
-            pkt = pkt / SourceRoute(bos=0, port=int(1))
+            pkt = pkt / SourceRoute(bos=0, port=int(4))
     pkt.getlayer(SourceRoute, 3).bos = 1
     pkt = pkt / IP(src=source,dst=addr) / UDP(dport=4321, sport=1234)
     pkt.show2()

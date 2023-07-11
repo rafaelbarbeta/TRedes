@@ -165,6 +165,8 @@ control MyIngress(inout headers hdr,
                 else if (hdr.ipv4.srcAddr == HOST_H2 && hdr.ipv4.dstAddr == HOST_H3) {
                     choose_ports_srcRoute_h2_to_h3();
                 }
+                //DEBUG! RETIRAR!
+                choose_ports_srcRoute_h1_to_h3();
                 //else if (hdr.ipv4.dstAddr == HOST_H2) {
                 //}
             }
