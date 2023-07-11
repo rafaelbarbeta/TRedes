@@ -126,49 +126,29 @@ control MyIngress(inout headers hdr,
         hdr.ipv4.ttl = hdr.ipv4.ttl - 1;
     }
 
-    action choose_ports_srcRoute_h1_to_h3(){
-        hdr.srcRoutes[0].port = 2;
-        hdr.srcRoutes[1].port = 3;
-        hdr.srcRoutes[2].port = 2;
+    action choose_ports_srcRoute(bit<15> p1, bit<15> p2, bit<15> p3) {
+        hdr.srcRoutes[0].port = p1;
+        hdr.srcRoutes[1].port = p2;
+        hdr.srcRoutes[2].port = p3;
     }
-
-    action choose_ports_srcRoute_h3_to_h1(){
-        hdr.srcRoutes[0].port = 1;
-        hdr.srcRoutes[1].port = 1;
-        hdr.srcRoutes[2].port = 1;
-    }
-
-    action choose_ports_srcRoute_h2_to_h1(){
-        hdr.srcRoutes[0].port = 3;
-        hdr.srcRoutes[1].port = 3;
-        hdr.srcRoutes[2].port = 1;
-    }
-
-    action choose_ports_srcRoute_h2_to_h3(){
-        hdr.srcRoutes[0].port = 1;
-        hdr.srcRoutes[1].port = 3;
-        hdr.srcRoutes[2].port = 2;
+    
+    table src_route {
+        key = {
+            hdr.ipv4.srcAddr: exact;
+            hdr.ipv4.dstAddr: exact;
+        }
+        actions = {
+            choose_ports_srcRoute;
+            NoAction;
+        }
+        size = 1024;
+        default_action = NoAction();
     }
     
     apply {
         if (hdr.srcRoutes[0].isValid()){
             if (hdr.srcRoutes[0].port == 4) {
-                if (hdr.ipv4.srcAddr == HOST_H1 && hdr.ipv4.dstAddr == HOST_H3) {
-                    choose_ports_srcRoute_h1_to_h3();
-                }
-                else if (hdr.ipv4.srcAddr == HOST_H3 && hdr.ipv4.dstAddr == HOST_H1) {
-                    choose_ports_srcRoute_h3_to_h1();
-                }
-                else if (hdr.ipv4.srcAddr == HOST_H2 && hdr.ipv4.dstAddr == HOST_H1) {
-                    choose_ports_srcRoute_h2_to_h1();
-                }
-                else if (hdr.ipv4.srcAddr == HOST_H2 && hdr.ipv4.dstAddr == HOST_H3) {
-                    choose_ports_srcRoute_h2_to_h3();
-                }
-                //DEBUG! RETIRAR!
-                choose_ports_srcRoute_h1_to_h3();
-                //else if (hdr.ipv4.dstAddr == HOST_H2) {
-                //}
+                src_route.apply();
             }
             if (hdr.srcRoutes[0].bos == 1) {
                 srcRoute_finish();
